@@ -15,7 +15,7 @@ int main() {
 	sprite.setTexture(texture);
 	sprite.setPosition(0, 0);
 
-	sf::Uint8* pixels = new sf::Uint8[width * height * 4];
+	
 
 	while (window.isOpen()) {
 
@@ -32,10 +32,10 @@ int main() {
 
 		sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
 
-		pixels[(mouse_pos.x + mouse_pos.y * width) * 4] = 255;
-		pixels[(mouse_pos.x + mouse_pos.y * width) * 4 + 3] = 255;
+		sf::Uint8* pixel = new sf::Uint8[4]{255, 0, 0, 255};
 
-		texture.update(pixels);
+
+		texture.update(pixel, 1, 1, mouse_pos.x, mouse_pos.y);
 
 		window.draw(sprite);
 
