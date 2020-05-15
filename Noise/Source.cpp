@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ctime>
 #include <SFML\Graphics.hpp>
 
 int height = 1080;
@@ -15,7 +16,15 @@ int main() {
 	sprite.setTexture(texture);
 	sprite.setPosition(0, 0);
 
-	
+	sf::Vector2i points[20];
+
+	std::srand(std::time(nullptr));
+	for (int i = 1; i < 20; i++) {
+		points[i].x = std::rand() % width;
+		points[i].y = std::rand() % height;
+	}
+
+	sf::Uint8* pixels = new sf::Uint8[width * height * 4];
 
 	while (window.isOpen()) {
 
@@ -30,12 +39,17 @@ int main() {
 
 		window.clear(sf::Color::Black);
 
-		sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
+		points[0] = sf::Mouse::getPosition(window);
 
-		sf::Uint8* pixel = new sf::Uint8[4]{255, 0, 0, 255};
+		sf::Uint8* pixels = new sf::Uint8[width * height * 4];
 
+		for (int i = 0; i < 20; i++) {
+			unsigned int index = (points[i].x + points[i].y * width) * 4;
+			pixels[index] = 255;
+			pixels[index + 3] = 255;
+		}
 
-		texture.update(pixel, 1, 1, mouse_pos.x, mouse_pos.y);
+		texture.update(pixels);
 
 		window.draw(sprite);
 
@@ -46,3 +60,4 @@ int main() {
 	
 
 }
+
