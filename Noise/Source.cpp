@@ -1,9 +1,26 @@
 #include <iostream>
 #include <ctime>
 #include <SFML\Graphics.hpp>
+#include <cmath>
+#include <vector>
+
+int number_of_points = 80;
 
 int height = 1080;
 int width = 1920;
+
+unsigned int diagonal = (unsigned int)std::sqrt(std::pow((width), 2) + std::pow((height), 2));
+
+double* calculate_distances(int x, int y, sf::Vector2i* points, int num_points) {
+	double* distances = new double[num_points];
+	for (int i = 0; i < num_points; i++) {
+		distances[i] = std::sqrt(std::pow((x - points[i].x), 2) + std::pow((y - points[i].y), 2));
+	}
+
+	return distances;
+}
+
+
 
 int main() {
 
@@ -16,13 +33,9 @@ int main() {
 	sprite.setTexture(texture);
 	sprite.setPosition(0, 0);
 
-	sf::Vector2i points[20];
+	sf::Vector2i* points = new sf::Vector2i[number_of_points];
 
-	std::srand(std::time(nullptr));
-	for (int i = 1; i < 20; i++) {
-		points[i].x = std::rand() % width;
-		points[i].y = std::rand() % height;
-	}
+	
 
 	sf::Uint8* pixels = new sf::Uint8[width * height * 4];
 
@@ -37,17 +50,34 @@ int main() {
 
 		}
 
-		window.clear(sf::Color::Black);
-
-		points[0] = sf::Mouse::getPosition(window);
-
-		sf::Uint8* pixels = new sf::Uint8[width * height * 4];
-
-		for (int i = 0; i < 20; i++) {
-			unsigned int index = (points[i].x + points[i].y * width) * 4;
-			pixels[index] = 255;
-			pixels[index + 3] = 255;
+		std::srand(std::time(nullptr));
+		for (int i = 0; i < number_of_points; i++) {
+			points[i].x = std::rand() % width;
+			points[i].y = std::rand() % height;
 		}
+		
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				unsigned int index = (x + y * width) * 4;
+				double* distances = calculate_distances(x, y, points, number_of_points);
+				std::sort(distances, distances + number_of_points);
+
+				for (int i = 0; i < 1; i++) {
+					int distance = (int)distances[i];
+					if (distance < 256) {
+						pixels[index + i] = 255 - distance;
+					}
+					else {
+						pixels[index + i] = 0;
+					}
+				}
+				
+				pixels[index + 3] = (int)distances[0];
+				delete distances;
+			}
+		}
+
+		window.clear(sf::Color::Black);
 
 		texture.update(pixels);
 
