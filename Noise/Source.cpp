@@ -24,6 +24,9 @@ double* calculate_distances(int x, int y, sf::Vector2i* points, int num_points) 
 
 int main() {
 
+	unsigned int x = 6954;
+	uint8_t m = (uint8_t)x;
+
 	sf::RenderWindow window(sf::VideoMode(width, height), "Noise", sf::Style::Fullscreen);
 
 	// Object used to put the image on screen
@@ -62,7 +65,7 @@ int main() {
 				double* distances = calculate_distances(x, y, points, number_of_points);
 				std::sort(distances, distances + number_of_points);
 
-				for (int i = 0; i < 1; i++) {
+				for (int i = 1; i < 3; i++) {
 					int distance = (int)distances[i];
 					if (distance < 256) {
 						pixels[index + i] = 255 - distance;
@@ -72,7 +75,7 @@ int main() {
 					}
 				}
 				
-				pixels[index + 3] = (int)distances[0];
+				pixels[index + 3] = 255;// (int)distances[0];
 				delete distances;
 			}
 		}
