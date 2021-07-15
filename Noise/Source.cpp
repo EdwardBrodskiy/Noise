@@ -24,10 +24,12 @@ void worley_noise(sf::Uint8* pixels);
 
 void lines(sf::Uint8* pixels);
 
+void graph_lines(sf::Uint8* pixels);
+
 
 int main() {
 
-	int what = 1;
+	int what = 2;
 	bool once = true;
 
 	sf::RenderWindow window(sf::VideoMode(width, height), "Noise", sf::Style::Fullscreen);
@@ -57,6 +59,8 @@ int main() {
 				worley_noise(pixels);
 			case 1:
 				lines(pixels);
+			case 2:
+				graph_lines(pixels);
 			}
 			once = false;
 		}
@@ -98,7 +102,11 @@ void draw_line(sf::Uint8* pixels, double m, double c, sf::Uint8* color) {
 		if (is_in(x, y)) {
 			int index = coord_to_index(x, y);
 			for (int i = 0; i < 4; i++) {
-				pixels[index + i] = color[i];
+				int new_color = color[i];
+				if (new_color < pixels[index + i]) {
+					new_color = pixels[index + i];
+				}
+				pixels[index + i] = new_color;
 			}
 		}
 	}
@@ -169,6 +177,26 @@ void lines(sf::Uint8* pixels) {
 	draw_vertical_line(pixels, cross[0], accent);
 
 	for (double i = -angle * (double)(width); i < (angle + 1) * (double)(width); i += 30) {
+		draw_line(pixels, angle, i, blue);
+		draw_line(pixels, -angle, i, blue);
+	}
+}
+
+void graph_lines(sf::Uint8* pixels) {
+	sf::Uint8 blue[] = { 78, 94, 109, 255 };
+	sf::Uint8 accent[] = { 225, 20, 20, 255 };
+	double angle = 0.3;
+
+	double ca = 200;
+	double cb = 1100;
+	double* cross = lines_cross(angle, ca, -angle, cb);
+
+	draw_line(pixels, angle, 200, accent);
+	draw_line(pixels, -angle, 1100, accent);
+	draw_vertical_line(pixels, cross[0], accent);
+
+	for (double i = -angle * (double)(width); i < (angle + 1) * (double)(width); i += 5) {
+		blue[3] = 255 * pow((1 - abs( sin(i / 3.14159 / 15)) / 5), 4);
 		draw_line(pixels, angle, i, blue);
 		draw_line(pixels, -angle, i, blue);
 	}
