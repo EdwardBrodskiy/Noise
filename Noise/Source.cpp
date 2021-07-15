@@ -26,10 +26,12 @@ void lines(sf::Uint8* pixels);
 
 void graph_lines(sf::Uint8* pixels);
 
+void sin_storm(sf::Uint8* pixels);
+
 
 int main() {
 
-	int what = 2;
+	int what = 3;
 	bool once = true;
 
 	sf::RenderWindow window(sf::VideoMode(width, height), "Noise", sf::Style::Fullscreen);
@@ -53,6 +55,12 @@ int main() {
 			}
 
 		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) {
+			once = true;
+			for (int i = 0; i < width * height * 4; i++) {
+				pixels[i] = 0;
+			}
+		}
 		if (once) {
 			switch (what) {
 			case 0:
@@ -61,6 +69,8 @@ int main() {
 				lines(pixels);
 			case 2:
 				graph_lines(pixels);
+			case 3:
+				sin_storm(pixels);
 			}
 			once = false;
 		}
@@ -96,8 +106,8 @@ double* lines_cross(double ma, double ca, double mb, double cb) {
 	return coords;
 }
 
-void draw_line(sf::Uint8* pixels, double m, double c, sf::Uint8* color) {
-	for (int x = 0; x < width; x++) {
+void draw_line(sf::Uint8* pixels, double m, double c, sf::Uint8* color,int start= 0, int end= width - 1) {
+	for (int x = start; x <= end; x++) {
 		int y = (int)(x * m + c);
 		if (is_in(x, y)) {
 			int index = coord_to_index(x, y);
@@ -115,7 +125,7 @@ void draw_line(sf::Uint8* pixels, double m, double c, sf::Uint8* color) {
 void draw_line(sf::Uint8* pixels, int x, int y, int nx, int ny, sf::Uint8* color) {
 	double m = (double)((long int)y - ny) / (double)((long int)x - nx);
 	double c = (double)y - m * x;
-	draw_line(pixels, m, c, color);
+	draw_line(pixels, m, c, color,x, nx);
 }
 
 void draw_vertical_line(sf::Uint8* pixels, int x,  sf::Uint8* color) {
@@ -200,4 +210,25 @@ void graph_lines(sf::Uint8* pixels) {
 		draw_line(pixels, angle, i, blue);
 		draw_line(pixels, -angle, i, blue);
 	}
+}
+
+void sin_storm(sf::Uint8* pixels) {
+	sf::Uint8 blue[] = { 78, 94, 109, 255 };
+	sf::Uint8 accent[] = { 225, 20, 20, 255 };
+	std::srand(std::time(nullptr));
+	for (int wave = 0; wave < 10; wave++) {
+		double freq_shift = (double)(std::rand() % 100) / 75;
+		double faze_shift = (double)(std::rand() % 100) / (3.14159 * 100);
+		int prev_y = height / 2;
+		sf::Uint8* color = blue;
+		if (wave == 8) {
+			color = accent;
+		}
+		for (int x = 0; x < width; x++) {
+			int y =( height + sin((((double)x  * 3  / width + faze_shift)* 3.14159) * (1 + freq_shift)) * pow((double)x * (wave + 1) / width * 3, 2) ) / 2;
+			draw_line(pixels, x - 1, prev_y, x, y, color);
+			prev_y = y;
+		}
+	}
+	
 }
