@@ -28,10 +28,14 @@ void graph_lines(sf::Uint8* pixels);
 
 void sin_storm(sf::Uint8* pixels);
 
+void haze(sf::Uint8* pixels);
+
+void sin_wave(sf::Uint8* pixels);
+
 
 int main() {
 
-	int what = 3;
+	int what = 4;
 	bool once = true;
 
 	sf::RenderWindow window(sf::VideoMode(width, height), "Noise", sf::Style::Fullscreen);
@@ -44,6 +48,10 @@ int main() {
 	sprite.setPosition(0, 0);
 
 	sf::Uint8* pixels = new sf::Uint8[width * height * 4];
+
+	for (int i = 0; i < width * height * 4; i++) {
+		pixels[i] = 0;
+	}
 
 	while (window.isOpen()) {
 
@@ -61,21 +69,9 @@ int main() {
 				pixels[i] = 0;
 			}
 		}
-		if (once) {
-			switch (what) {
-			case 0:
-				worley_noise(pixels);
-			case 1:
-				lines(pixels);
-			case 2:
-				graph_lines(pixels);
-			case 3:
-				sin_storm(pixels);
-			}
-			once = false;
-		}
+		
 
-
+		
 
 		window.clear(sf::Color::Black);
 
@@ -86,6 +82,28 @@ int main() {
 
 
 		window.display();
+
+		if (once) {
+			switch (what) {
+			case 0:
+				worley_noise(pixels);
+				break;
+			case 1:
+				lines(pixels);
+				break;
+			case 2:
+				graph_lines(pixels);
+				break;
+			case 3:
+				sin_storm(pixels);
+				break;
+		
+			case 4:
+				sin_wave(pixels);
+				break;	}
+			haze(pixels);
+			once = false;
+		}
 	}
 
 
@@ -97,6 +115,20 @@ int coord_to_index(int x, int y) {
 
 bool is_in(int x, int y) {
 	return x >= 0 && y >= 0 && x < width && y < height;
+}
+
+bool is_empty(sf::Uint8* pixels, int x, int y) {
+	int index = coord_to_index(x, y);
+	for (int i = 0; i < 4; i++) {
+		if (pixels[index + i] > 0) {
+			return false;
+		}
+	}
+	return true;
+}
+
+double distance(int x, int y, int xn, int yn) {
+	return pow(pow(xn - x, 2) + pow(yn - y, 2), .5);
 }
 
 double* lines_cross(double ma, double ca, double mb, double cb) {
@@ -186,7 +218,7 @@ void lines(sf::Uint8* pixels) {
 	draw_line(pixels, -angle, 1100, accent);
 	draw_vertical_line(pixels, cross[0], accent);
 
-	for (double i = -angle * (double)(width); i < (angle + 1) * (double)(width); i += 30) {
+	for (double i = -angle * (double)(width); i < (angle + 1) * (double)(width); i += 90) {
 		draw_line(pixels, angle, i, blue);
 		draw_line(pixels, -angle, i, blue);
 	}
@@ -231,4 +263,72 @@ void sin_storm(sf::Uint8* pixels) {
 		}
 	}
 	
+}
+
+void haze(sf::Uint8* pixels) {
+	sf::Uint8* buffer = new sf::Uint8[width * height * 4];
+
+	for (int i = 0; i < width * height * 4; i++) {
+		buffer[i] = 0;
+	}
+
+	int radius = 20;
+
+	for (int x = 0; x < width; x++) {
+		for (int y = 0; y < height; y++) {
+			if (!is_empty(pixels, x, y)) {
+				for (int xd = x - radius; xd < x + radius; xd++) {
+					for (int yd = y - radius; yd < y + radius; yd++) {
+						if (is_in(xd,yd)) {
+							int origin = coord_to_index(x, y);
+							int target = coord_to_index(xd, yd);
+							double dist = distance(x, y, xd, yd);
+							for (int i = 0; i < 3; i++) {
+								int new_color = (int)buffer[target + i] + (int)pixels[origin + i] / pow(.6 * dist + 3 , 2);
+								if (new_color > 255) {
+									new_color = 255;
+								}
+								buffer[target + i] = new_color;
+							}
+							buffer[target + 3] = 255;
+						}
+						
+					}
+				}
+				
+			}
+		}
+	}
+
+	for (int i = 0; i < width * height * 4; i++) {
+		int new_color = (int)pixels[i] + buffer[i];
+		if (new_color > 255) {
+			new_color = 255;
+		}
+		pixels[i] = new_color;
+	}
+
+
+	delete[] buffer;
+}
+
+void sin_wave(sf::Uint8* pixels) {
+	sf::Uint8 blue[] = { 78, 94, 109, 255 };
+	sf::Uint8 accent[] = { 225, 20, 20, 255 };
+	int waves = 30;
+	for (int wave = -waves; wave < waves; wave++) {
+		int prev_y = height / 2;
+		sf::Uint8* color = blue;
+		if (wave == -waves / 2) {
+			color = accent;
+		}
+		for (int x = 0; x < width; x++) {
+			double y_shift = (double)wave / waves * height;
+			double x_shift = y_shift * height / width * 1.3;
+			int y = .6 * x + sin(((((double)x + x_shift) * 10 / width) * 3.14159)) * 10 * abs(wave) + y_shift ;
+			draw_line(pixels, x - 1, prev_y, x, y, color);
+			prev_y = y;
+		}
+	}
+
 }
