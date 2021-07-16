@@ -139,19 +139,42 @@ double* lines_cross(double ma, double ca, double mb, double cb) {
 }
 
 void draw_line(sf::Uint8* pixels, double m, double c, sf::Uint8* color,int start= 0, int end= width - 1) {
-	for (int x = start; x <= end; x++) {
-		int y = (int)(x * m + c);
-		if (is_in(x, y)) {
-			int index = coord_to_index(x, y);
-			for (int i = 0; i < 4; i++) {
-				int new_color = color[i];
-				if (new_color < pixels[index + i]) {
-					new_color = pixels[index + i];
+	
+	if (-1 < m && m < 1) {
+		int direction = (end > start) * 2 - 1;
+		for (int x = start; x != end; x += direction) {
+			int y = m * x + c;
+			if (is_in(x, y)) {
+				int index = coord_to_index(x, y);
+				for (int i = 0; i < 4; i++) {
+					int new_color = color[i];
+					if (new_color < pixels[index + i]) {
+						new_color = pixels[index + i];
+					}
+					pixels[index + i] = new_color;
 				}
-				pixels[index + i] = new_color;
 			}
 		}
 	}
+	else {
+		int y_start = m * start + c;
+		int y_end = m * end + c;
+		int direction = (y_end > y_start) * 2 - 1;
+		for (int y = y_start; y != y_end; y += direction) {
+			int x = (double)(y - c) / m;
+			if (is_in(x, y) && start <= x && x < end) {
+				int index = coord_to_index(x, y);
+				for (int i = 0; i < 4; i++) {
+					int new_color = color[i];
+					if (new_color < pixels[index + i]) {
+						new_color = pixels[index + i];
+					}
+					pixels[index + i] = new_color;
+				}
+			}
+		}
+	}
+	
 }
 
 void draw_line(sf::Uint8* pixels, int x, int y, int nx, int ny, sf::Uint8* color) {
