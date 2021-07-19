@@ -1,8 +1,10 @@
 #include <iostream>
-#include <ctime>
+#include <algorithm>
 #include <SFML\Graphics.hpp>
 #include <cmath>
 #include <vector>
+#include <string>
+#include <set>  
 
 int number_of_points = 80;
 
@@ -35,8 +37,10 @@ void sin_wave(sf::Uint8* pixels);
 
 int main() {
 
-	int what = 4;
+	int what = 1;
 	bool once = true;
+
+	sf::Image image;
 
 	sf::RenderWindow window(sf::VideoMode(width, height), "Noise", sf::Style::Fullscreen);
 
@@ -97,12 +101,45 @@ int main() {
 			case 3:
 				sin_storm(pixels);
 				break;
-		
 			case 4:
 				sin_wave(pixels);
 				break;	}
 			haze(pixels);
 			once = false;
+			image.create(width, height, pixels);
+
+			std::set<long int> colors;
+
+			for (int i = 0; i < width * height; i++) {
+				long int color_hash = 0;
+				for (int shift = 0; shift < 3; shift++) {
+					color_hash += (long int)pixels[i * 4 + shift] * pow(256, shift);
+				}
+				auto search = colors.find(color_hash);
+				if (search == colors.end() ){ // if not found
+					colors.insert(color_hash);
+				}
+			}
+			std::cout << colors.size() << std::endl;
+			std::for_each(colors.cbegin(), colors.cend(), [&image](long int c) {
+				int r = c % 256;
+				c = c / 256;
+				int g = c % 256;
+				c = c / 256;
+				int b = c % 256 ;
+				sf::Color color(r, g, b, 255);
+
+				// std::cout << r << "\t" << g << "\t" << b << std::endl;
+				int brightness = r + g + b;
+				if (brightness < 256) {
+					image.createMaskFromColor(color, (sf::Uint8)brightness);
+				}
+
+			
+				}
+			);
+			
+			image.saveToFile(std::to_string(what) + ".png");
 		}
 	}
 
@@ -307,7 +344,8 @@ void haze(sf::Uint8* pixels) {
 							int target = coord_to_index(xd, yd);
 							double dist = distance(x, y, xd, yd);
 							for (int i = 0; i < 3; i++) {
-								int new_color = (int)buffer[target + i] + (int)pixels[origin + i] / pow(.6 * dist + 3 , 2);
+								double drop_off_factor = 1 / pow(.4 * dist + 3, 2);
+								int new_color = (int)buffer[target + i] + (int)pixels[origin + i] * drop_off_factor ;
 								if (new_color > 255) {
 									new_color = 255;
 								}
