@@ -24,20 +24,23 @@ double* calculate_distances(int x, int y, sf::Vector2i* points, int num_points) 
 
 void worley_noise(sf::Uint8* pixels);
 
-void lines(sf::Uint8* pixels);
+void lines(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent);
 
-void graph_lines(sf::Uint8* pixels);
+void graph_lines(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent);
 
-void sin_storm(sf::Uint8* pixels);
+void sin_storm(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent);
 
-void haze(sf::Uint8* pixels);
+void haze(sf::Uint8* pixels, int radius, double intensity, double dispersion);
 
-void sin_wave(sf::Uint8* pixels);
+void sin_wave(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent);
 
 
 int main() {
 
-	int what = 3;
+	int what = 1;
+	sf::Uint8 primary[] = { 172 * 2/ 3, 197* 2 / 3, 218, 255 };
+	sf::Uint8 accent[] = { 255, 26, 26, 255 };
+
 	bool once = true;
 
 	sf::Image image;
@@ -99,18 +102,22 @@ int main() {
 				worley_noise(pixels);
 				break;
 			case 1:
-				lines(pixels);
+				lines(pixels, primary, accent);
+				haze(pixels, 30, 5, 4);
 				break;
 			case 2:
-				graph_lines(pixels);
+				graph_lines(pixels, primary, accent);
+				haze(pixels, 30, 15, 4);
 				break;
 			case 3:
-				sin_storm(pixels);
+				sin_storm(pixels, primary, accent);
+				haze(pixels, 30, 15, 4);
 				break;
 			case 4:
-				sin_wave(pixels);
-				break;	}
-			haze(pixels);
+				sin_wave(pixels, primary, accent);
+				haze(pixels, 30, 5, 4);
+				break;	
+			}
 			once = false;
 			image.create(width, height, pixels);
 
@@ -283,9 +290,8 @@ void worley_noise(sf::Uint8* pixels) {
 	}
 }
 
-void lines(sf::Uint8* pixels) {
-	sf::Uint8 blue[] = { 78, 94, 109, 255 };
-	sf::Uint8 accent[] = { 225, 20, 20, 255 };
+void lines(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent) {
+
 	double angle = 0.3;
 
 	double ca = 200;
@@ -297,14 +303,13 @@ void lines(sf::Uint8* pixels) {
 	draw_vertical_line(pixels, cross[0], accent);
 
 	for (double i = -angle * (double)(width); i < (angle + 1) * (double)(width); i += 90) {
-		draw_line(pixels, angle, i, blue);
-		draw_line(pixels, -angle, i, blue);
+		draw_line(pixels, angle, i, primary);
+		draw_line(pixels, -angle, i, primary);
 	}
 }
 
-void graph_lines(sf::Uint8* pixels) {
-	sf::Uint8 blue[] = { 78, 94, 109, 255 };
-	sf::Uint8 accent[] = { 225, 20, 20, 255 };
+void graph_lines(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent) {
+
 	double angle = 0.3;
 
 	double ca = 200;
@@ -316,21 +321,20 @@ void graph_lines(sf::Uint8* pixels) {
 	draw_vertical_line(pixels, cross[0], accent);
 
 	for (double i = -angle * (double)(width); i < (angle + 1) * (double)(width); i += 5) {
-		blue[3] = 255 * pow((1 - abs( sin(i / 3.14159 / 15)) / 5), 4);
-		draw_line(pixels, angle, i, blue);
-		draw_line(pixels, -angle, i, blue);
+		primary[3] = 255 * pow((1 - abs( sin(i / 3.14159 / 15)) / 5), 4);
+		draw_line(pixels, angle, i, primary);
+		draw_line(pixels, -angle, i, primary);
 	}
 }
 
-void sin_storm(sf::Uint8* pixels) {
-	sf::Uint8 blue[] = { 78, 94, 109, 255 };
-	sf::Uint8 accent[] = { 225, 20, 20, 255 };
+void sin_storm(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent) {
+
 	std::srand(std::time(nullptr));
 	for (int wave = 0; wave < 10; wave++) {
 		double freq_shift = (double)(std::rand() % 100) / 75;
 		double faze_shift = (double)(std::rand() % 100) / (3.14159 * 100);
 		int prev_y = height / 2;
-		sf::Uint8* color = blue;
+		sf::Uint8* color = primary;
 		if (wave == 8) {
 			color = accent;
 		}
@@ -343,7 +347,7 @@ void sin_storm(sf::Uint8* pixels) {
 	
 }
 
-void haze(sf::Uint8* pixels) {
+void haze(sf::Uint8* pixels, int radius, double intensity, double dispersion) {
 	auto* buffer = new double[width * height * 4];
 
 	auto* light_counter = new double[width * height];
@@ -356,9 +360,6 @@ void haze(sf::Uint8* pixels) {
 	for (int i = 0; i < width * height; i++) {
 		light_counter[i] = 0;
 	}
-	int radius = 100;
-	double intensity = 8;
-	double dispersion = 6;
 
 	for (int x = 0; x < width; x++) {
 		for (int y = 0; y < height; y++) {
@@ -370,7 +371,7 @@ void haze(sf::Uint8* pixels) {
 							int target = coord_to_index(xd, yd);
 
 							double dist = distance(x, y, xd, yd);
-							double drop_off_factor = intensity * 0.01 * (pow(3, -0.03 / dispersion * pow(dist, 2)) + pow(6, -pow(dist, 2)));
+							double drop_off_factor = intensity * 0.05 * ( 0.02 * pow(3, -0.03 / dispersion * pow(dist, 2)) + pow(6, -pow(dist, 2)));
 
 							light_counter[target / 4] += drop_off_factor;
 
@@ -403,13 +404,12 @@ void haze(sf::Uint8* pixels) {
 	delete[] light_counter;
 }
 
-void sin_wave(sf::Uint8* pixels) {
-	sf::Uint8 blue[] = { 172, 197, 218, 255 }; //{ 119, 147, 175, 255 };
-	sf::Uint8 accent[] = { 255, 26, 26, 255 };
+void sin_wave(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent) {
+	
 	int waves = 30;
 	for (int wave = -waves; wave < waves; wave++) {
 		int prev_y = height / 2;
-		sf::Uint8* color = blue;
+		sf::Uint8* color = primary;
 		if (wave == -waves / 2) {
 			color = accent;
 		}
