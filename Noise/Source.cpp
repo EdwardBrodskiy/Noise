@@ -37,7 +37,7 @@ void sin_wave(sf::Uint8* pixels);
 
 int main() {
 
-	int what = 1;
+	int what = 3;
 	bool once = true;
 
 	sf::Image image;
@@ -54,7 +54,13 @@ int main() {
 	sf::Uint8* pixels = new sf::Uint8[width * height * 4];
 
 	for (int i = 0; i < width * height * 4; i++) {
-		pixels[i] = 0;
+		if (i % 4 == 3) {
+			pixels[i] = 0;
+		}
+		else {
+			pixels[i] = 0;
+		}
+		
 	}
 
 	while (window.isOpen()) {
@@ -108,12 +114,12 @@ int main() {
 			once = false;
 			image.create(width, height, pixels);
 
-			std::set<long int> colors;
+			std::set<unsigned long int> colors;
 
 			for (int i = 0; i < width * height; i++) {
-				long int color_hash = 0;
-				for (int shift = 0; shift < 3; shift++) {
-					color_hash += (long int)pixels[i * 4 + shift] * pow(256, shift);
+				unsigned long int color_hash = 0;
+				for (int shift = 0; shift < 4; shift++) {
+					color_hash += (unsigned long int)pixels[i * 4 + shift] * pow(256, shift);
 				}
 				auto search = colors.find(color_hash);
 				if (search == colors.end() ){ // if not found
@@ -121,25 +127,41 @@ int main() {
 				}
 			}
 			std::cout << colors.size() << std::endl;
-			std::for_each(colors.cbegin(), colors.cend(), [&image](long int c) {
+			for (int i = 0; i < colors.size(); i += 1000) {
+				std::cout << ' ';
+			}
+			std::cout << '|' << std::endl;
+			int counter = 0;
+			std::for_each(colors.cbegin(), colors.cend(), [&image, &counter](unsigned long int c) {
 				int r = c % 256;
 				c = c / 256;
 				int g = c % 256;
 				c = c / 256;
 				int b = c % 256 ;
-				sf::Color color(r, g, b, 255);
+				c = c / 256;
+				int a = c % 256;
+				sf::Color color(r, g, b, a);
 
-				// std::cout << r << "\t" << g << "\t" << b << std::endl;
-				int brightness = r + g + b;
-				if (brightness < 256) {
-					image.createMaskFromColor(color, (sf::Uint8)brightness);
+				image.createMaskFromColor(color, (sf::Uint8)((a - 7 * 32) * 8));
+
+				if (counter % 1000 == 0) {
+					std::cout << '#';
 				}
+				counter++;
+			
 
 			
 				}
 			);
-			
+
+			std::cout << '|' << std::endl;
+		
 			image.saveToFile(std::to_string(what) + ".png");
+			std::cout << "Image saved to " << std::to_string(what) << ".png" << std::endl;
+
+			for (int i = 3; i < width * height * 4; i += 4) {
+				pixels[i] = (pixels[i] - 7 * 32) * 8;
+			}
 		}
 	}
 
@@ -156,7 +178,7 @@ bool is_in(int x, int y) {
 
 bool is_empty(sf::Uint8* pixels, int x, int y) {
 	int index = coord_to_index(x, y);
-	for (int i = 0; i < 4; i++) {
+	for (int i = 3; i < 4; i++) {
 		if (pixels[index + i] > 0) {
 			return false;
 		}
@@ -184,11 +206,7 @@ void draw_line(sf::Uint8* pixels, double m, double c, sf::Uint8* color,int start
 			if (is_in(x, y)) {
 				int index = coord_to_index(x, y);
 				for (int i = 0; i < 4; i++) {
-					int new_color = color[i];
-					if (new_color < pixels[index + i]) {
-						new_color = pixels[index + i];
-					}
-					pixels[index + i] = new_color;
+					pixels[index + i] = color[i];
 				}
 			}
 		}
@@ -202,7 +220,7 @@ void draw_line(sf::Uint8* pixels, double m, double c, sf::Uint8* color,int start
 			if (is_in(x, y) && start <= x && x < end) {
 				int index = coord_to_index(x, y);
 				for (int i = 0; i < 4; i++) {
-					int new_color = color[i];
+					sf::Uint8 new_color = color[i];
 					if (new_color < pixels[index + i]) {
 						new_color = pixels[index + i];
 					}
@@ -326,13 +344,21 @@ void sin_storm(sf::Uint8* pixels) {
 }
 
 void haze(sf::Uint8* pixels) {
-	sf::Uint8* buffer = new sf::Uint8[width * height * 4];
+	auto* buffer = new double[width * height * 4];
+
+	auto* light_counter = new double[width * height];
+
 
 	for (int i = 0; i < width * height * 4; i++) {
 		buffer[i] = 0;
 	}
 
-	int radius = 20;
+	for (int i = 0; i < width * height; i++) {
+		light_counter[i] = 0;
+	}
+	int radius = 100;
+	double intensity = 8;
+	double dispersion = 6;
 
 	for (int x = 0; x < width; x++) {
 		for (int y = 0; y < height; y++) {
@@ -342,16 +368,18 @@ void haze(sf::Uint8* pixels) {
 						if (is_in(xd,yd)) {
 							int origin = coord_to_index(x, y);
 							int target = coord_to_index(xd, yd);
+
 							double dist = distance(x, y, xd, yd);
+							double drop_off_factor = intensity * 0.01 * (pow(3, -0.03 / dispersion * pow(dist, 2)) + pow(6, -pow(dist, 2)));
+
+							light_counter[target / 4] += drop_off_factor;
+
 							for (int i = 0; i < 3; i++) {
-								double drop_off_factor = 1 / pow(.4 * dist + 3, 2);
-								int new_color = (int)buffer[target + i] + (int)pixels[origin + i] * drop_off_factor ;
-								if (new_color > 255) {
-									new_color = 255;
-								}
-								buffer[target + i] = new_color;
+								buffer[target + i] += (double)pixels[origin + i] * drop_off_factor;
 							}
-							buffer[target + 3] = 255;
+							buffer[target + 3] += (int)pixels[origin + 3] * pow(drop_off_factor * 1.5, .5) ;
+
+							
 						}
 						
 					}
@@ -361,21 +389,23 @@ void haze(sf::Uint8* pixels) {
 		}
 	}
 
-	for (int i = 0; i < width * height * 4; i++) {
-		int new_color = (int)pixels[i] + buffer[i];
-		if (new_color > 255) {
-			new_color = 255;
+	for (int i = 0; i < width * height; i++) {
+		for (int shift = 0; shift < 3; shift++) {
+			double new_color = std::min((int)(buffer[i * 4 + shift]) + (int)pixels[i * 4 + shift], 255);
+			double color_space = (double)(buffer[i * 4 + shift]) / light_counter[i];
+			pixels[i * 4 + shift] = new_color * (256 - color_space) / 256 + color_space;
 		}
-		pixels[i] = new_color;
+		pixels[i * 4 + 3] = std::min((int)(buffer[i * 4 + 3] / 4 ), 255)/ 8 + 32 * 7;
 	}
 
 
 	delete[] buffer;
+	delete[] light_counter;
 }
 
 void sin_wave(sf::Uint8* pixels) {
-	sf::Uint8 blue[] = { 78, 94, 109, 255 };
-	sf::Uint8 accent[] = { 225, 20, 20, 255 };
+	sf::Uint8 blue[] = { 172, 197, 218, 255 }; //{ 119, 147, 175, 255 };
+	sf::Uint8 accent[] = { 255, 26, 26, 255 };
 	int waves = 30;
 	for (int wave = -waves; wave < waves; wave++) {
 		int prev_y = height / 2;
