@@ -135,11 +135,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="after_effects.cpp" />
+    <ClCompile Include="canvas_tools.cpp" />
+    <ClCompile Include="global_values.cpp" />
+    <ClCompile Include="pattern_generators.cpp" />
     <ClCompile Include="Source.cpp" />
-    <ClCompile Include="WorleyNoise.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="WorleyNoise.h" />
+    <ClInclude Include="after_effects.h" />
+    <ClInclude Include="canvas_tools.h" />
+    <ClInclude Include="global_values.h" />
+    <ClInclude Include="pattern_generators.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
