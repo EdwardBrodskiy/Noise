@@ -11,3 +11,5 @@ void graph_lines(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent);
 void sin_storm(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent);
 
 void sin_wave(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent);
+
+void dots(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent);

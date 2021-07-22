@@ -12,8 +12,8 @@
 
 int main() {
 
-	int what = 1;
-	sf::Uint8 primary[] = { 0,0,0,255 };//{ 172 * 2/ 3, 197* 2 / 3, 218, 255 };
+	int what = 5;
+	sf::Uint8 primary[] = { 172 * 2 / 3, 197 * 2 / 3, 218, 255 };
 	sf::Uint8 accent[] = { 255, 26, 26, 255 };
 
 	bool once = true;
@@ -88,6 +88,10 @@ int main() {
 				break;
 			case 4:
 				sin_wave(pixels, primary, accent);
+				haze(pixels, 30, 5, 4);
+				break;
+			case 5:
+				dots(pixels, primary, accent);
 				haze(pixels, 30, 5, 4);
 				break;
 			}

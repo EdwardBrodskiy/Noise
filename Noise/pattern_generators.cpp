@@ -2,6 +2,8 @@
 #include "global_values.h"
 #include "canvas_tools.h"
 
+#include <list> 
+
 void worley_noise(sf::Uint8* pixels, int number_of_points) {
 	sf::Vector2i* points = new sf::Vector2i[number_of_points];
 
@@ -108,4 +110,46 @@ void sin_wave(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent) {
 		}
 	}
 
+}
+
+void dots(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent) {
+	double x_separation = 100;
+
+	double y_separation = tan(2 * 3.14159 / 6) * x_separation / 2;
+	bool shift_flag = false;
+
+	std::list<sf::Vector2f> next_alts;
+	double alt_chance = 1;
+	sf::Vector2f possible_offsets[] = {
+		sf::Vector2f(x_separation, 0),
+		sf::Vector2f(-x_separation / 2, y_separation),
+		sf::Vector2f(x_separation / 2, y_separation)
+	};
+
+	next_alts.push_back(sf::Vector2f(7 * x_separation, 4 * y_separation));
+	std::srand(std::time(nullptr));
+	for (double y = 0; y < height; y += y_separation) {
+		for (double x = 0; x < width; x += x_separation) {
+			double shifted_x = x + x_separation / 2 * shift_flag;
+			int size = (sin(((x / width + pow(y / height, 2)) - .5) * 3.14159 * 2) + 1.5) * 2;
+			auto color = primary;
+			bool one_found = false;
+			std::for_each(next_alts.cbegin(), next_alts.cend(), [shifted_x, y, &alt_chance, &pixels, &color, &one_found, &next_alts, accent, possible_offsets](sf::Vector2f next_alt) {
+				if (!one_found && approx_equals(shifted_x, y, next_alt.x, next_alt.y, 110)) {
+					color = accent;
+					for (int i = 0; i < 3; i++) {
+						if (std::rand() % 100 <= alt_chance * 100 * (i + 1)) {
+							alt_chance *= .9;
+							sf::Vector2f new_next_alt = next_alt + possible_offsets[i];
+							draw_line(pixels, next_alt.x, next_alt.y, new_next_alt.x, new_next_alt.y, color);
+							next_alts.push_back(new_next_alt);
+						}
+					}
+					one_found = true;
+				}
+				});
+			draw_circle(pixels, (int)(x + x_separation / 2 * shift_flag), (int)y, size, color);
+		}
+		shift_flag = !shift_flag;
+	}
 }

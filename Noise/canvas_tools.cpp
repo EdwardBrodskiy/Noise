@@ -20,6 +20,10 @@ bool is_in(int x, int y) {
 	return x >= 0 && y >= 0 && x < width && y < height;
 }
 
+bool is_in(int index) {
+	return index >= 0 && index < width * height * 4;
+}
+
 bool is_empty(sf::Uint8* pixels, int x, int y) {
 	int index = coord_to_index(x, y);
 	for (int i = 3; i < 4; i++) {
@@ -41,6 +45,19 @@ double* lines_cross(double ma, double ca, double mb, double cb) {
 	return coords;
 }
 
+bool approx_equals(double x, double y, double x1, double y1, double error) {
+	return x <= x1 + error && x >= x1 - error && y <= y1 + error && y >= y1 - error;
+}
+
+void draw_pixel(sf::Uint8* pixels, int index, sf::Uint8* color) {
+	if (is_in(index)) {
+		for (int i = 0; i < 4; i++) {
+			pixels[index + i] = color[i];
+		}
+	}
+
+}
+
 void draw_line(sf::Uint8* pixels, double m, double c, sf::Uint8* color, int start, int end) {
 
 	if (-1 < m && m < 1) {
@@ -48,10 +65,7 @@ void draw_line(sf::Uint8* pixels, double m, double c, sf::Uint8* color, int star
 		for (int x = start; x != end; x += direction) {
 			int y = m * x + c;
 			if (is_in(x, y)) {
-				int index = coord_to_index(x, y);
-				for (int i = 0; i < 4; i++) {
-					pixels[index + i] = color[i];
-				}
+				draw_pixel(pixels, coord_to_index(x, y), color);
 			}
 		}
 	}
@@ -61,15 +75,8 @@ void draw_line(sf::Uint8* pixels, double m, double c, sf::Uint8* color, int star
 		int direction = (y_end > y_start) * 2 - 1;
 		for (int y = y_start; y != y_end; y += direction) {
 			int x = (double)(y - c) / m;
-			if (is_in(x, y) && start <= x && x < end) {
-				int index = coord_to_index(x, y);
-				for (int i = 0; i < 4; i++) {
-					sf::Uint8 new_color = color[i];
-					if (new_color < pixels[index + i]) {
-						new_color = pixels[index + i];
-					}
-					pixels[index + i] = new_color;
-				}
+			if (is_in(x, y) && (start <= x && x < end) || (end <= x && x < start)) {
+				draw_pixel(pixels, coord_to_index(x, y), color);
 			}
 		}
 	}
@@ -83,13 +90,17 @@ void draw_line(sf::Uint8* pixels, int x, int y, int nx, int ny, sf::Uint8* color
 }
 
 void draw_vertical_line(sf::Uint8* pixels, int x, sf::Uint8* color) {
-
 	for (int y = 0; y < height; y++) {
-		int index = coord_to_index(x, y);
-		for (int i = 0; i < 4; i++) {
-			pixels[index + i] = color[i];
+		draw_pixel(pixels, coord_to_index(x, y), color);
+	}
+}
+
+void draw_circle(sf::Uint8* pixels, int x, int y, int r, sf::Uint8* color) {
+	for (int xd = -r; xd <= r; xd++) {
+		for (int yd = -r; yd <= r; yd++) {
+			if (is_in(x + xd, y + yd) && pow(xd, 2) + pow(yd, 2) <= pow(r, 2)) {
+				draw_pixel(pixels, coord_to_index(x + xd, y + yd), color);
+			}
 		}
 	}
-
-
 }
