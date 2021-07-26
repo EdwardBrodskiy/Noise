@@ -193,3 +193,18 @@ void corridor(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent) {
 	}
 
 }
+
+void corner(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent) {
+	int lines = 20;
+	int red_line = lines / 3;
+	for (int i = 0; i < lines; i++) {
+		auto color = primary;
+		if (--red_line == 0) {
+			color = accent;
+		}
+		int x = (double)i / lines * width;
+		int y = (double)i / lines * height;
+		draw_line(pixels, x, 0, width, y, color);
+	}
+
+}

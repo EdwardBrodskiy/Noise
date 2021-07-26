@@ -12,7 +12,7 @@
 
 int main() {
 
-	int what = 7;
+	int what = 8;
 	sf::Uint8 primary[] = { 172 * 2 / 3, 197 * 2 / 3, 218, 255 };
 	sf::Uint8 accent[] = { 255, 26, 26, 255 };
 
@@ -100,6 +100,10 @@ int main() {
 				break;
 			case 7:
 				corridor(pixels, primary, accent);
+				haze(pixels, 30, 5, 4);
+				break;
+			case 8:
+				corner(pixels, primary, accent);
 				haze(pixels, 30, 5, 4);
 				break;
 			}
