@@ -93,8 +93,8 @@ void draw_line(sf::Uint8* pixels, int x, int y, int nx, int ny, sf::Uint8* color
 	draw_line(pixels, m, c, color, x, nx);
 }
 
-void draw_vertical_line(sf::Uint8* pixels, int x, sf::Uint8* color) {
-	for (int y = 0; y < height; y++) {
+void draw_vertical_line(sf::Uint8* pixels, int x, sf::Uint8* color, int start, int end) {
+	for (int y = start; y < end; y++) {
 		draw_pixel(pixels, coord_to_index(x, y), color);
 	}
 }
@@ -107,4 +107,13 @@ void draw_circle(sf::Uint8* pixels, int x, int y, int r, sf::Uint8* color) {
 			}
 		}
 	}
+}
+
+void draw_rectangle(sf::Uint8* pixels, int x, int y, int nx, int ny, sf::Uint8* color) {
+	draw_line(pixels, x, y, nx, y, color);
+	draw_line(pixels, x, ny, nx, ny, color);
+
+	draw_vertical_line(pixels, x, color, y, ny);
+	draw_vertical_line(pixels, nx, color, y, ny);
+
 }

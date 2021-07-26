@@ -176,6 +176,20 @@ void aux_fractal_tree(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent, 
 	aux_fractal_tree(pixels, accent, primary, end, rotate(branch, angle_change) * size_change, size_change * 0.9, angle_change  );
 
 	aux_fractal_tree(pixels, primary, accent, end, rotate(branch, -angle_change) * size_change, size_change, angle_change  );
+}
 
+void corridor(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent) {
+	sf::Vector2i target(width * 3 / 4 , height * 3 / 4 - 1);
+	int red_rect = 5;
+	double close_rate = 0.4;
+	for (int x = 0; x < target.x - 10; x += (double)(target.x - x) * close_rate) {
+		auto color = primary;
+		if (--red_rect == 0) {
+			color = accent;
+		}
+		int y = (double)x / target.x * target.y;
+		draw_rectangle(pixels, x, y, width - (width - target.x )*((double)x / target.x) - 1,
+			height - (height - target.y) * ((double)y /target.y) - 1, color);
+	}
 
 }

@@ -17,3 +17,5 @@ void dots(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent);
 void fractal_tree(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent);
 
 void aux_fractal_tree(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent, sf::Vector2f start, sf::Vector2f branch, float size_change, float angle_change);
+
+void corridor(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent);

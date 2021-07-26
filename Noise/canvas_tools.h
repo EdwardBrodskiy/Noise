@@ -24,6 +24,8 @@ void draw_line(sf::Uint8* pixels, double m, double c, sf::Uint8* color, int star
 
 void draw_line(sf::Uint8* pixels, int x, int y, int nx, int ny, sf::Uint8* color);
 
-void draw_vertical_line(sf::Uint8* pixels, int x, sf::Uint8* color);
+void draw_vertical_line(sf::Uint8* pixels, int x, sf::Uint8* color, int start = 0, int end = height);
 
 void draw_circle(sf::Uint8* pixels, int x, int y, int r, sf::Uint8* color);
+
+void draw_rectangle(sf::Uint8* pixels, int x, int y, int nx, int ny, sf::Uint8* color);
