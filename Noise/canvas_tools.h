@@ -18,6 +18,8 @@ double* lines_cross(double ma, double ca, double mb, double cb);
 
 bool approx_equals(double x, double y, double x1, double y1, double error);
 
+sf::Vector2f rotate(sf::Vector2f vector, float rad);
+
 void draw_line(sf::Uint8* pixels, double m, double c, sf::Uint8* color, int start = 0, int end = width - 1);
 
 void draw_line(sf::Uint8* pixels, int x, int y, int nx, int ny, sf::Uint8* color);

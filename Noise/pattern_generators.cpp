@@ -153,3 +153,29 @@ void dots(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent) {
 		shift_flag = !shift_flag;
 	}
 }
+
+void fractal_tree(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent) {
+	sf::Vector2f branch(270,295);
+	float size_change = 0.75;
+	float angle_change = .06 * 2 * 3.14159;
+	aux_fractal_tree(pixels, primary, accent, sf::Vector2f(0, 0), branch, size_change, angle_change);
+
+}
+
+void aux_fractal_tree(sf::Uint8* pixels, sf::Uint8* primary, sf::Uint8* accent, sf::Vector2f start, sf::Vector2f branch,
+	float size_change, float angle_change) {
+
+	if (std::pow(branch.x, 2) + std::pow(branch.y, 2) < 1) {
+		return;
+	}
+
+	sf::Vector2f end = start + branch;
+
+	draw_line(pixels, start.x, start.y, end.x, end.y, primary);
+
+	aux_fractal_tree(pixels, accent, primary, end, rotate(branch, angle_change) * size_change, size_change * 0.9, angle_change  );
+
+	aux_fractal_tree(pixels, primary, accent, end, rotate(branch, -angle_change) * size_change, size_change, angle_change  );
+
+
+}

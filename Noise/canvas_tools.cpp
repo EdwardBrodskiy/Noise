@@ -49,6 +49,10 @@ bool approx_equals(double x, double y, double x1, double y1, double error) {
 	return x <= x1 + error && x >= x1 - error && y <= y1 + error && y >= y1 - error;
 }
 
+sf::Vector2f rotate(sf::Vector2f vector, float rad) {
+	return sf::Vector2f(vector.x * cos(rad) - vector.y * sin(rad), vector.x * sin(rad) + vector.y * cos(rad));
+}
+
 void draw_pixel(sf::Uint8* pixels, int index, sf::Uint8* color) {
 	if (is_in(index)) {
 		for (int i = 0; i < 4; i++) {
